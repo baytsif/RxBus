@@ -112,13 +112,13 @@ public class UnregisteringSubscriberTest {
         };
 
         @Override
-        public Map<EventType, ProducerEvent> findAllProducers(Object listener) {
-            return Finder.ANNOTATED.findAllProducers(listener);
+        public Map<EventType, ProducerEvent> findAllProducers(Object listener,String tag, String suffix) {
+            return Finder.ANNOTATED.findAllProducers(listener,tag,suffix);
         }
 
         @Override
-        public Map<EventType, Set<SubscriberEvent>> findAllSubscribers(Object listener) {
-            Map<EventType, Set<SubscriberEvent>> found = Finder.ANNOTATED.findAllSubscribers(listener);
+        public Map<EventType, Set<SubscriberEvent>> findAllSubscribers(Object listener,String tag, String suffix) {
+            Map<EventType, Set<SubscriberEvent>> found = Finder.ANNOTATED.findAllSubscribers(listener,tag,suffix);
             Map<EventType, Set<SubscriberEvent>> sorted = new HashMap<>();
             for (Map.Entry<EventType, Set<SubscriberEvent>> entry : found.entrySet()) {
                 SortedSet<SubscriberEvent> subscribers = new TreeSet<>(subscriberComparator);

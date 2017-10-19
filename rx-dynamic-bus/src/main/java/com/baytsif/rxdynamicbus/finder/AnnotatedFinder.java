@@ -17,6 +17,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import static android.R.attr.type;
+
 /**
  * Helper methods for finding methods annotated with {@link Produce} and {@link Subscribe}.
  */
@@ -35,15 +37,15 @@ public final class AnnotatedFinder {
             new ConcurrentHashMap<>();
 
     private static void loadAnnotatedProducerMethods(Class<?> listenerClass,
-                                                     Map<EventType, SourceMethod> producerMethods) {
+                                                     Map<EventType, SourceMethod> producerMethods,String tag, String suffix) {
         Map<EventType, Set<SourceMethod>> subscriberMethods = new HashMap<>();
-        loadAnnotatedMethods(listenerClass, producerMethods, subscriberMethods);
+        loadAnnotatedMethods(listenerClass, producerMethods, subscriberMethods,tag,suffix);
     }
 
     private static void loadAnnotatedSubscriberMethods(Class<?> listenerClass,
-                                                       Map<EventType, Set<SourceMethod>> subscriberMethods) {
+                                                       Map<EventType, Set<SourceMethod>> subscriberMethods,String tag, String suffix) {
         Map<EventType, SourceMethod> producerMethods = new HashMap<>();
-        loadAnnotatedMethods(listenerClass, producerMethods, subscriberMethods);
+        loadAnnotatedMethods(listenerClass, producerMethods, subscriberMethods,tag,suffix);
     }
 
     /**
@@ -51,7 +53,7 @@ public final class AnnotatedFinder {
      * specified class.
      */
     private static void loadAnnotatedMethods(Class<?> listenerClass,
-                                             Map<EventType, SourceMethod> producerMethods, Map<EventType, Set<SourceMethod>> subscriberMethods) {
+                                             Map<EventType, SourceMethod> producerMethods, Map<EventType, Set<SourceMethod>> subscriberMethods,String tag1, String suffix) {
         for (Method method : listenerClass.getDeclaredMethods()) {
             // The compiler sometimes creates synthetic bridge methods as part of the
             // type erasure process. As of JDK8 these methods now include the same
@@ -86,6 +88,10 @@ public final class AnnotatedFinder {
                     String tag = Tag.DEFAULT;
                     if (tagLength > 0) {
                         tag = tags[tagLength - 1].value();
+                    }
+
+                    if (tag.equals(tag1)) {
+                        tag = tag1 + suffix;
                     }
                     EventType type = new EventType(tag, parameterClazz);
                     Set<SourceMethod> methods = subscriberMethods.get(type);
@@ -147,14 +153,14 @@ public final class AnnotatedFinder {
     /**
      * This implementation finds all methods marked with a {@link Produce} annotation.
      */
-    static Map<EventType, ProducerEvent> findAllProducers(Object listener) {
+    static Map<EventType, ProducerEvent> findAllProducers(Object listener,String tag, String suffix) {
         final Class<?> listenerClass = listener.getClass();
         Map<EventType, ProducerEvent> producersInMethod = new HashMap<>();
 
         Map<EventType, SourceMethod> methods = PRODUCERS_CACHE.get(listenerClass);
         if (null == methods) {
             methods = new HashMap<>();
-            loadAnnotatedProducerMethods(listenerClass, methods);
+            loadAnnotatedProducerMethods(listenerClass, methods,tag,suffix);
         }
         if (!methods.isEmpty()) {
             for (Map.Entry<EventType, SourceMethod> e : methods.entrySet()) {
@@ -169,15 +175,15 @@ public final class AnnotatedFinder {
     /**
      * This implementation finds all methods marked with a {@link Subscribe} annotation.
      */
-    static Map<EventType, Set<SubscriberEvent>> findAllSubscribers(Object listener) {
+    static Map<EventType, Set<SubscriberEvent>> findAllSubscribers(Object listener,String tag, String suffix) {
         Class<?> listenerClass = listener.getClass();
         Map<EventType, Set<SubscriberEvent>> subscribersInMethod = new HashMap<>();
 
         Map<EventType, Set<SourceMethod>> methods = SUBSCRIBERS_CACHE.get(listenerClass);
         if (null == methods) {
             methods = new HashMap<>();
-            loadAnnotatedSubscriberMethods(listenerClass, methods);
         }
+        loadAnnotatedSubscriberMethods(listenerClass, methods,tag,suffix);
         if (!methods.isEmpty()) {
             for (Map.Entry<EventType, Set<SourceMethod>> e : methods.entrySet()) {
                 Set<SubscriberEvent> subscribers = new HashSet<>();

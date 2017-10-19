@@ -54,10 +54,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        RxBus.getTest().register(mouseMam);
-        RxBus.getTest().register(catMam.birth());
+        RxBus.get().register(mouseMam);
+        RxBus.get().register(catMam.birth());
 
-        Timber.e("Moust Mam has registed? " + RxBus.getTest().hasRegistered(mouseMam));
+        Timber.e("Moust Mam has registed? " + RxBus.get().hasRegistered(mouseMam));
     }
 
     /**
@@ -65,10 +65,10 @@ public class MainActivity extends AppCompatActivity {
      */
     @Override
     protected void onDestroy() {
-        RxBus.getTest().unregister(mouseMam);
+        RxBus.get().unregister(mouseMam);
         ArrayList<Cat> cats = catMam.getCats();
         for (Cat cat : cats) {
-            RxBus.getTest().unregister(cat);
+            RxBus.get().unregister(cat);
         }
         super.onDestroy();
     }
