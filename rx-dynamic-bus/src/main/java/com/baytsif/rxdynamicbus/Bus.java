@@ -230,13 +230,13 @@ public class Bus {
     }
 
     ///// ************************************************
-    public void register(Object object,String tag,String suffix) {
+    public void register(Object object,String dynamicTag,String suffix) {
         if (object == null) {
             throw new NullPointerException("Object to register must not be null.");
         }
         enforcer.enforce(this);
 
-        Map<EventType, ProducerEvent> foundProducers = finder.findAllProducers(object,tag,suffix);
+        Map<EventType, ProducerEvent> foundProducers = finder.findAllProducers(object,dynamicTag,suffix);
         for (EventType type : foundProducers.keySet()) {
 
             final ProducerEvent producer = foundProducers.get(type);
@@ -255,7 +255,7 @@ public class Bus {
             }
         }
 
-        Map<EventType, Set<SubscriberEvent>> foundSubscribersMap = finder.findAllSubscribers(object,tag,suffix);
+        Map<EventType, Set<SubscriberEvent>> foundSubscribersMap = finder.findAllSubscribers(object,dynamicTag,suffix);
         for (EventType type : foundSubscribersMap.keySet()) {
             Set<SubscriberEvent> subscribers = subscribersByType.get(type);
             if (subscribers == null) {

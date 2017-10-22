@@ -22,5 +22,7 @@ import java.lang.annotation.Target;
 public @interface Subscribe {
     Tag[] tags() default {};
 
+    TagDynamic[] dynamicTags() default {};
+
     EventThread thread() default EventThread.MAIN_THREAD;
 }
