@@ -279,9 +279,9 @@ public class Bus {
 //                    }
 //                }
 
-                for (SubscriberEvent foundSubscriber : foundSubscribers) {
+                for (SubscriberEvent foundSubscriber : foundSubscribers) { //
                     SubscriberEvent subscriber = findSubscriber(subscribers, foundSubscriber);
-                    if (subscriber != null) {
+                    if (subscriber == null) {
                         subscribers.add(foundSubscriber);
                     } else {
                         subscribers.remove(subscriber);
@@ -430,6 +430,51 @@ public class Bus {
         }
     }
 
+    public void unregister(Object object,String dynamicTag,String suffix) {
+        if (object == null) {
+            throw new NullPointerException("Object to unregister must not be null.");
+        }
+        enforcer.enforce(this);
+
+        Map<EventType, ProducerEvent> producersInListener = finder.findAllProducers(object,dynamicTag,suffix);
+        for (Map.Entry<EventType, ProducerEvent> entry : producersInListener.entrySet()) {
+            final EventType key = entry.getKey();
+            ProducerEvent producer = getProducerForEventType(key);
+            ProducerEvent value = entry.getValue();
+
+            if (value == null || !value.equals(producer)) {
+                throw new IllegalArgumentException(
+                        "Missing event producer for an annotated method. Is " + object.getClass()
+                                + " registered?");
+            }
+            producersByType.remove(key).invalidate();
+        }
+
+        Map<EventType, Set<SubscriberEvent>> subscribersInListener = finder.findAllSubscribers(object,dynamicTag,suffix);
+        for (Map.Entry<EventType, Set<SubscriberEvent>> entry : subscribersInListener.entrySet()) {
+            EventType key = entry.getKey();
+            Set<SubscriberEvent> currentSubscribers = getSubscribersForEventType(entry.getKey());
+
+            if (key.getTag().equals(dynamicTag + suffix)) {
+                Collection<SubscriberEvent> eventMethodsInListener = entry.getValue();
+
+                if (currentSubscribers == null || !currentSubscribers.containsAll(eventMethodsInListener)) {
+                    throw new IllegalArgumentException(
+                            "Missing event subscriber for an annotated method. Is " + object.getClass()
+                                    + " registered?");
+                }
+
+                for (SubscriberEvent subscriber : currentSubscribers) {
+                    if (eventMethodsInListener.contains(subscriber)) {
+                        subscriber.invalidate();
+                    }
+                }
+                currentSubscribers.removeAll(eventMethodsInListener);
+            }
+
+        }
+    }
+
     /**
      * Posts an event to all registered subscribers.  This method will return successfully after the event has been posted to
      * all subscribers, and regardless of any exceptions thrown by subscribers.
@@ -554,7 +599,7 @@ public class Bus {
     }
 
 
-    public void getNumberOfSubscribers() {
-//        subscribersByType.
+    public void getNumberOfSubscribersByEventType(EventType eventType) {
+//        subscribersByType.keySet()
     }
 }
