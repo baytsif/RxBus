@@ -63,4 +63,8 @@ public class EventType {
         return tag.equals(other.tag) && clazz == other.clazz;
     }
 
+    public String getTag() {
+        return tag;
+    }
+
 }

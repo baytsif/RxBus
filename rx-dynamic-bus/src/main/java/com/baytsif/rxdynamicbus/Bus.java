@@ -230,7 +230,7 @@ public class Bus {
     }
 
     ///// ************************************************
-    public void register(Object object,String dynamicTag,String suffix) {
+    public void register(Object object,String dynamicTag,String suffix) throws IllegalArgumentException {
         if (object == null) {
             throw new NullPointerException("Object to register must not be null.");
         }
@@ -266,9 +266,29 @@ public class Bus {
                     subscribers = SubscribersCreation;
                 }
             }
-            final Set<SubscriberEvent> foundSubscribers = foundSubscribersMap.get(type);
-            if (!subscribers.addAll(foundSubscribers)) {
-                throw new IllegalArgumentException("Object already registered.");
+
+            if (type.getTag().equals(dynamicTag + suffix)) {
+                final Set<SubscriberEvent> foundSubscribers = foundSubscribersMap.get(type);
+//                for (SubscriberEvent foundSubscriber : foundSubscribers) {
+//                    if (!isSubscrbibersAllreadyContainsSameSubscriber(subscribers,foundSubscriber)) {
+//                        subscribers.add(foundSubscriber);
+//                    } else {
+//                        subscribers.remove(foundSubscriber);
+//                        subscribers.add(foundSubscriber);
+////                        throw new IllegalArgumentException("Object already registered.");
+//                    }
+//                }
+
+                for (SubscriberEvent foundSubscriber : foundSubscribers) {
+                    SubscriberEvent subscriber = findSubscriber(subscribers, foundSubscriber);
+                    if (subscriber != null) {
+                        subscribers.add(foundSubscriber);
+                    } else {
+                        subscribers.remove(subscriber);
+                        subscribers.add(foundSubscriber);
+                    }
+                }
+
             }
         }
 
@@ -298,6 +318,26 @@ public class Bus {
                 }
             }
         });
+    }
+
+    private boolean isSubscrbibersAllreadyContainsSameSubscriber(Set<SubscriberEvent> subscriberEvents, SubscriberEvent subscriberEvent) {
+        for (SubscriberEvent event : subscriberEvents) {
+            if (event.getMethod().getName().equals(subscriberEvent.getMethod().getName()) &&
+                    event.getMethod().getDeclaringClass().equals(subscriberEvent.getMethod().getDeclaringClass())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private SubscriberEvent findSubscriber(Set<SubscriberEvent> subscriberEvents, SubscriberEvent subscriberEvent) {
+        for (SubscriberEvent event : subscriberEvents) {
+            if (event.getMethod().getName().equals(subscriberEvent.getMethod().getName()) &&
+                    event.getMethod().getDeclaringClass().equals(subscriberEvent.getMethod().getDeclaringClass())) {
+                return event;
+            }
+        }
+        return null;
     }
 
     /**
@@ -511,5 +551,10 @@ public class Bus {
             }
         }
         return classes;
+    }
+
+
+    public void getNumberOfSubscribers() {
+//        subscribersByType.
     }
 }

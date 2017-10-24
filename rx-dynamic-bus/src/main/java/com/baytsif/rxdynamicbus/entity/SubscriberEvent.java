@@ -159,4 +159,8 @@ public class SubscriberEvent extends Event {
         return method.equals(other.method) && target == other.target;
     }
 
+    public Method getMethod() {
+        return this.method;
+    }
+
 }
